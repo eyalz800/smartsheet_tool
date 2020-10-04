@@ -66,6 +66,12 @@ class SmartsheetTool:
     def column_title(self, column):
         return self.column(column).title
 
+    def num_columns(self):
+        return len(self.sheet.columns)
+
+    def num_rows(self):
+        return len(self.sheet.rows)
+
     def at(self, row, column):
         return self.sheet.rows[row].cells[column]
 
