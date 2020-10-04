@@ -41,7 +41,14 @@ class ApiKey:
         return Crypto.unpad(Crypto.AES.new(self.key, Crypto.AES.MODE_CBC, self.iv).decrypt(encrypted_api_key)).decode('ascii')
 
 class SmartsheetTool:
-    def __init__(self, name, password=None, api_key=None, encrypted_api_key=None):
+    def __init__(self, name, password=None, api_key=None, encrypted_api_key=None, api_key_file=None, encrypted_api_key_file=None):
+        if api_key_file:
+            with open(api_key_file, 'r') as f:
+                api_key = f.read()
+        if encrypted_api_key_file:
+            with open(encrypted_api_key_file, 'rb') as f:
+                encrypted_api_key = f.read()
+
         if (api_key and (password or encrypted_api_key)) or (not api_key and not (password and encrypted_api_key)):
             raise ValueError('Must provide either api_key or (encrypted_api_key and password)')
         if api_key:
