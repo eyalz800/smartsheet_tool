@@ -58,7 +58,7 @@ class SmartsheetTool:
 
         self.smartsheet.errors_as_exceptions()
         self.sheet = self.smartsheet.Sheets.get_sheet_by_name(name)
-        self.changes = []
+        self.changes = {}
 
     def column(self, column):
         return self.sheet.columns[column]
@@ -79,10 +79,13 @@ class SmartsheetTool:
         return self.at(row, column).value
 
     def assign_value(self, row, column, value):
-        self.changes.append((row, column, value))
+        if row not in self.changes:
+            self.changes[row] = {column: value}
+        else:
+            self.changes[row].update({column: value})
 
     def clear(self):
-        self.changes = []
+        self.changes = {}
 
     def refresh(self):
         if self.changes:
@@ -92,16 +95,17 @@ class SmartsheetTool:
     def save(self):
         updates = []
 
-        for row, column, value in self.changes:
-            new_cell = self.smartsheet.models.Cell()
-            new_cell.column_id = self.at(row, column).column_id
-            new_cell.value = value
-
+        for row, changes in self.changes.items():
             new_row = self.smartsheet.models.Row()
             new_row.id = self.sheet.rows[row].id
-            new_row.cells.append(new_cell)
+
+            for column, value in changes.items():
+                new_cell = self.smartsheet.models.Cell()
+                new_cell.column_id = self.at(row, column).column_id
+                new_cell.value = value
+                new_row.cells.append(new_cell)
 
             updates.append(new_row)
 
         self.smartsheet.Sheets.update_rows(self.sheet.id, updates)
-        self.changes = []
+        self.changes = {}
