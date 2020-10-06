@@ -92,6 +92,33 @@ class SmartsheetTool:
             raise ValueError('Cannot refresh while there are changes.')
         self.sheet = self.smartsheet.Sheets.get_sheet(self.sheet.id)
 
+    def sort(self, column, direction):
+        if self.changes:
+            raise ValueError('Cannot sort while there are changes.')
+
+        if type(column) is str:
+            column_id = None
+            for c in self.sheet.columns:
+                if c.title == column:
+                    column_id = c.id
+                    break
+                if c.title.lower() == column.lower():
+                    column_id = c.id
+            if not column_id:
+                raise ValueError('No such column {}'.format(column_id))
+        else:
+            column_id = self.column(column).id
+
+        self.sheet = self.smartsheet.Sheets.sort_sheet(
+            self.sheet.id, smartsheet.models.SortSpecifier(
+            {
+                'sort_criteria': [smartsheet.models.SortCriterion({
+                    'column_id': column_id,
+                    'direction': direction.upper()
+                })]
+            }
+        ))
+
     def save(self):
         updates = []
 
